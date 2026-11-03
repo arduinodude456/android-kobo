@@ -8,6 +8,8 @@ file "$D/system.img" | grep -qiE 'ext[234]' || { echo "system.img ist kein ext4 
 cp "$D/system.img" $O/system.img
 cp ../out/zImage $O/zImage
 cp ../device/qemu-args.sh ../device/android-start.sh $O/
+echo "system.img root:"; debugfs -R 'ls -l /' "$O/system.img" 2>&1 || true
+echo "system.img /system:"; debugfs -R 'ls -l /system' "$O/system.img" 2>&1 || true
 
 # Ramdisk patchen: eigene init.goldfish.rc (vda=/system, vdb=/data, adbd per TCP)
 mkdir rd && (cd rd && gzip -dc "../$D/ramdisk.img" | cpio -id --quiet && cp ../../ci/init.goldfish.rc . \
