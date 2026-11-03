@@ -15,5 +15,5 @@ scripts/config --set-str CMDLINE "" --disable MODULES
 for o in RTC_INTF_ALARM RTC_INTF_ALARM_DEV ANDROID_ALARM_DEV; do scripts/config --enable "$o" 2>/dev/null || true; done
 make olddefconfig
 grep -E 'CONFIG_(ANDROID_BINDER_IPC|ASHMEM|DRM_VIRTIO_GPU|VIRTIO_INPUT)=y' .config
-make -j"$(nproc)" KCFLAGS=-Wno-error zImage
+make -j"$(nproc)" KCFLAGS=-Wno-error HOSTCFLAGS=-fcommon zImage
 cp arch/arm/boot/zImage ../out/zImage
