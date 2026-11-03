@@ -1,6 +1,6 @@
 set -eu
 mkdir -p out
-[ -d linux ] || git clone --depth 1 -b android-4.4 https://android.googlesource.com/kernel/common linux
+[ -d linux ] || git clone --depth 1 -b deprecated/android-4.4 https://android.googlesource.com/kernel/common linux
 cd linux
 export ARCH=arm CROSS_COMPILE=arm-linux-gnueabi-
 make multi_v7_defconfig
