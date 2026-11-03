@@ -1,6 +1,6 @@
 # Läuft in alpine:3.x (x86_64) mit --network host. Erwartet: out/zImage, $SYS_URL
 set -eu
-apk add --no-cache qemu-system-arm qemu-img android-tools socat curl unzip cpio gzip file e2fsprogs coreutils
+apk add --no-cache qemu-system-arm qemu-img android-tools socat curl unzip cpio gzip file e2fsprogs e2fsprogs-extra coreutils
 O=$PWD/out/android; mkdir -p $O work; cd work
 curl -fL "$SYS_URL" -o sys.zip && unzip -oq sys.zip
 D=$(dirname "$(find . -name system.img | head -1)")
