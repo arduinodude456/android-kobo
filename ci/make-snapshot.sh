@@ -23,7 +23,28 @@ QP=$!
 mon() { echo "$1" | socat -t "${2:-5}" - UNIX-CONNECT:/tmp/mon; }
 
 echo "warte auf adb ..."
-for i in $(seq 1 300); do adb connect 127.0.0.1:5555 >/dev/null 2>&1; adb -s 127.0.0.1:5555 shell true >/dev/null 2>&1 && break; sleep 5; done
+adb_deadline=$(( $(date +%s) + 180 ))
+adb_ready=false
+while [ "$(date +%s)" -lt "$adb_deadline" ]; do
+    if ! kill -0 "$QP" 2>/dev/null; then
+        echo "QEMU wurde beendet, bevor ADB erreichbar war"
+        tail -100 qemu.log || true
+        tail -100 "$O/run/console.log" || true
+        exit 1
+    fi
+    adb connect 127.0.0.1:5555 >/dev/null 2>&1
+    if adb -s 127.0.0.1:5555 shell true >/dev/null 2>&1; then
+        adb_ready=true
+        break
+    fi
+    sleep 5
+done
+[ "$adb_ready" = true ] || {
+    echo "ADB nach 180 Sekunden nicht erreichbar"
+    tail -100 qemu.log || true
+    tail -100 "$O/run/console.log" || true
+    exit 1
+}
 A="adb -s 127.0.0.1:5555"
 for i in $(seq 1 180); do
     [ "$($A shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && break; sleep 5
