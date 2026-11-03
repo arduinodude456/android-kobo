@@ -1,6 +1,10 @@
 set -eu
 mkdir -p out
 [ -d linux ] || git clone --depth 1 -b deprecated/android-4.4 https://android.googlesource.com/kernel/common linux
+# The deprecated Android 4.4 lowmemorykiller uses poll_table without including
+# its defining header; patch the fetched upstream tree before compiling it.
+grep -q '^#include <linux/poll.h>$' linux/drivers/staging/android/lowmemorykiller.c || \
+    sed -i '/^#include <linux\/circ_buf.h>$/a #include <linux/poll.h>' linux/drivers/staging/android/lowmemorykiller.c
 cd linux
 export ARCH=arm CROSS_COMPILE=arm-linux-gnueabi-
 make multi_v7_defconfig
