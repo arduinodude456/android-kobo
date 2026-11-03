@@ -13,7 +13,7 @@ run_qemu() {
     $QEMU_CMD -M virt -cpu cortex-a15 -m 512 -smp 1 -accel tcg \
         -rtc base=utc,clock=host -nodefaults \
         -kernel "$AND/zImage" -initrd "$AND/ramdisk.img" \
-        -append "console=ttyAMA0,115200 root=/dev/ram0 rw init=/init androidboot.hardware=goldfish androidboot.console=ttyAMA0 qemu=1 qemu.gles=0 android.checkjni=0" \
+        -append "console=ttyAMA0,115200 rdinit=/init androidboot.hardware=goldfish androidboot.console=ttyAMA0 qemu=1 qemu.gles=0 android.checkjni=0" \
         -drive file="$AND/system.img",if=none,id=sys,format=raw,readonly=on \
         -device virtio-blk-device,drive=sys \
         -drive file="$AND/data.qcow2",if=none,id=dat,format=qcow2 \
