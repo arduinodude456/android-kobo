@@ -1,6 +1,11 @@
 name: build-android-kobo
 on:
   workflow_dispatch:
+    inputs:
+      diag_only:
+        description: 'Nur Diagnose: nach ~2 min Messung abbrechen (Paket ohne Snapshot)'
+        type: boolean
+        default: false
   push: { tags: ['v*'] }
 jobs:
   kernel:
@@ -26,6 +31,7 @@ jobs:
     env:
       ALPINE: "3.20"
       SYS_URL: ${{ vars.ANDROID19_SYSIMG_URL }}   # Repo-Variable: URL der android-19 armeabi-v7a sys-img ZIP
+      DIAG_ONLY: ${{ inputs.diag_only && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -33,12 +39,12 @@ jobs:
       - name: QEMU-Bündel (armv7)
         run: docker run --rm -v "$PWD:/w" -w /w -e ALPINE alpine:${ALPINE} sh ci/bundle-qemu.sh
       - name: Android booten und Snapshot erzeugen
-        run: docker run --rm --network host -v "$PWD:/w" -w /w -e SYS_URL alpine:${ALPINE} sh ci/make-snapshot.sh
+        run: docker run --rm --network host -v "$PWD:/w" -w /w -e SYS_URL -e DIAG_ONLY alpine:${ALPINE} sh ci/make-snapshot.sh
       - name: Konsolenlog sichern
         if: always()
         run: |
           mkdir -p dbg; cp -f out/android/run/console.log dbg/ 2>/dev/null || true
-          cp -f work/console.log work/sfprof.txt work/qemu.log work/logcat.txt work/ps.txt dbg/ 2>/dev/null || true
+          cp -f work/console.log work/sfprof.txt work/sfprof.raw work/qemu.log work/logcat.txt work/ps.txt work/dmesg.txt dbg/ 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: debug-logs, path: dbg, if-no-files-found: ignore }
