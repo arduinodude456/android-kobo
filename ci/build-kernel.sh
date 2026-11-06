@@ -1,6 +1,12 @@
 set -eu
 mkdir -p out
 [ -d linux ] || git clone --depth 1 -b deprecated/android-4.4 https://android.googlesource.com/kernel/common linux
+# Alte ARM-Assemblernotation #alloc/#execinstr wird von neueren Binutils nicht
+# mehr angenommen. Die ELF-Sektionsflags "a" bzw. "ax" sind gleichbedeutend
+# und werden sowohl von aelteren als auch von aktuellen Assemblers verstanden.
+find linux/arch/arm -name '*.S' -exec sed -i -E \
+    -e 's/,[[:space:]]*#alloc,[[:space:]]*#execinstr/,"ax"/g' \
+    -e 's/,[[:space:]]*#alloc/,"a"/g' {} +
 # The deprecated Android 4.4 lowmemorykiller uses poll_table without including
 # its defining header; patch the fetched upstream tree before compiling it.
 grep -q '^#include <linux/poll.h>$' linux/drivers/staging/android/lowmemorykiller.c || \
@@ -81,9 +87,9 @@ done
 for o in RTC_INTF_ALARM RTC_INTF_ALARM_DEV ANDROID_ALARM_DEV; do scripts/config --enable "$o" 2>/dev/null || true; done
 make olddefconfig
 # Pflicht-Optionen pruefen: ohne virtio-gpu/fbdev gibt es kein /dev/graphics/fb0 (surfaceflinger
-# stuerzt in Endlosschleife ab), ohne virtio-input keine Eingabe, ohne Logger kein logcat.
+# stuerzt in Endlosschleife ab), ohne virtio-input keine Eingabe, ohne SMP keine zweite vCPU.
 miss=0
-for o in DRM_VIRTIO_GPU DRM_FBDEV_EMULATION VIRTIO_INPUT VIRTIO_MMIO VIRTIO_BLK VIRTIO_NET ANDROID_BINDER_IPC ASHMEM FB; do
+for o in SMP DRM_VIRTIO_GPU DRM_FBDEV_EMULATION VIRTIO_INPUT VIRTIO_MMIO VIRTIO_BLK VIRTIO_NET ANDROID_BINDER_IPC ASHMEM FB; do
     if ! grep -q "^CONFIG_$o=y" .config; then
         echo "FEHLT in .config: CONFIG_$o"; miss=1
         grep -rn -A8 "^config $o\$" --include=Kconfig* . 2>/dev/null | head -14 || true

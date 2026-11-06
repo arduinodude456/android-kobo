@@ -19,23 +19,16 @@ on fs
     # dabei den Trigger "nonencrypted" aus, und erst der startet "class_start main"
     # (zygote, surfaceflinger, mediaserver ...). Da wir manuell mounten, muessen wir ihn selbst
     # ausloesen - sonst laeuft nur adbd, sys.boot_completed wird nie 1, Bildschirm bleibt schwarz.
-    # Erststart unter TCG entlasten: keine Bootanimation, dexopt ohne Verifizierung/Optimierung
-    setprop debug.sf.nobootanimation 1
-    setprop dalvik.vm.dexopt-flags v=n,o=n
+    # Keine dalvik.vm.dexopt-flags erzwingen: v=n,o=n deaktiviert Verifizierung
+    # und Optimierung auch fuer den spaeteren Betrieb im Snapshot.
+    # AOSP 4.4 wertet debug.sf.nobootanimation hier nicht aus; stattdessen
+    # ersetzt ci/patch-bootanim.sh den Dienst in der Ramdisk-init.rc.
     setprop ro.crypto.state unencrypted
     trigger nonencrypted
 
-# surfaceflinger belegt unter TCG (1 vCPU) fast die ganze CPU-Zeit und laesst system_server verhungern
-# (siehe ci/sf-throttle.sh). Nur waehrend des Boots auf nice 10 drosseln, nach sys.boot_completed zurueck auf 0
-# (sonst bleibt er im Snapshot gedrosselt und der Betrieb ist extrem traege).
-service sf-throttle /system/bin/sh /sf-throttle.sh 10 0
-    user root
-    group root
-    oneshot
-    disabled
-
-on property:init.svc.surfaceflinger=running
-    start sf-throttle
+# SurfaceFlinger nicht pauschal renicen. Die alte Boot-Drosselung ueberschrieb
+# saemtliche Thread-Prioritaeten und stellte anschliessend alle auf 0 statt
+# auf ihre jeweiligen Originalwerte. Diagnose und ggf. Experiment nur manuell.
 
 on post-fs-data
     setprop vold.post_fs_data_done 1

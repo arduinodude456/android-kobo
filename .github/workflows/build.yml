@@ -30,7 +30,8 @@ jobs:
     timeout-minutes: 300
     env:
       ALPINE: "3.20"
-      SYS_URL: ${{ vars.ANDROID19_SYSIMG_URL }}   # Repo-Variable: URL der android-19 armeabi-v7a sys-img ZIP
+      # Mit der Repo-Variablen kann ein anderes kompatibles API-19-Image gewaehlt werden.
+      SYS_URL: ${{ vars.ANDROID19_SYSIMG_URL || 'https://dl.google.com/android/repository/sys-img/android/armeabi-v7a-19_r05.zip' }}
       DIAG_ONLY: ${{ inputs.diag_only && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4

@@ -17,7 +17,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: out/zImage
-          key: zimage-${{ hashFiles('ci/build-kernel.sh', 'ci/logger/*') }}
+          key: zimage-${{ hashFiles('ci/build-kernel.sh', 'ci/patch-virtgpu-fb.py', 'ci/patch-virtio-input.py', 'ci/logger/*') }}
       - if: steps.kc.outputs.cache-hit != 'true'
         run: sudo apt-get update && sudo apt-get install -y gcc-arm-linux-gnueabi bc bison flex libssl-dev libelf-dev make git
       - if: steps.kc.outputs.cache-hit != 'true'
@@ -30,7 +30,8 @@ jobs:
     timeout-minutes: 300
     env:
       ALPINE: "3.20"
-      SYS_URL: ${{ vars.ANDROID19_SYSIMG_URL }}   # Repo-Variable: URL der android-19 armeabi-v7a sys-img ZIP
+      # Mit der Repo-Variablen kann ein anderes kompatibles API-19-Image gewaehlt werden.
+      SYS_URL: ${{ vars.ANDROID19_SYSIMG_URL || 'https://dl.google.com/android/repository/sys-img/android/armeabi-v7a-19_r05.zip' }}
       DIAG_ONLY: ${{ inputs.diag_only && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4

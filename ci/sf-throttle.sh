@@ -1,6 +1,9 @@
 #!/system/bin/sh
-# Drosselt surfaceflinger NUR WAEHREND DES BOOTS (alle Threads auf nice $1, Standard 10) und setzt ihn nach
-# sys.boot_completed=1 auf nice $2 (Standard 0) zurueck.  Aufruf: init-Service "sf-throttle".
+# Altes DIAGNOSE-Experiment, nicht automatisch gestartet. Erfordert ausdruecklich
+# "sh /sf-throttle.sh --unsafe [boot-nice] [nach-boot-nice]". Es stellt NICHT
+# die urspruenglichen, pro Thread verschiedenen Prioritaeten wieder her.
+# Daher nur in einem wegwerfbaren Gast testen, danach den Gast neu starten und
+# keinen Snapshot des Experiments verwenden.
 #
 # Hintergrund: Waehrend des Erststarts verbraucht surfaceflinger auf der einzigen emulierten vCPU (TCG) fast die
 # ganze CPU-Zeit (Software-Komposition), system_server verhungert. Darum wird er beim Boot gedrosselt.
@@ -9,6 +12,11 @@
 # reagieren extrem traege. Deshalb nach dem Boot zurueck auf normale Prioritaet.
 #
 # Nur mksh-Builtins + renice + getprop (Toolbox): kein ps|cut/sed/head/basename.
+[ "${1:-}" = --unsafe ] || {
+    echo 'Nicht gestartet: veraendert SF-Threadprioritaeten irreversibel; nur mit --unsafe im Testgast.' >&2
+    exit 2
+}
+shift
 PRIO=${1:-10}
 AFTER=${2:-0}
 say() { echo "<6>sf-throttle: $*" > /dev/kmsg 2>/dev/null; }
