@@ -222,7 +222,7 @@ echo "=== dumpsys input (Touch) ==="; $A shell dumpsys input 2>&1 | tr -d '\r' |
 # nach dem loadvm auf dem Kobo weiter und blockieren die einzige vCPU. Zwei
 # aufeinanderfolgende Samples helfen, kurze Leerlaufspitzen nicht zu verwechseln.
 # Dies misst den schnellen CI-Gast, nicht die spaetere Kobo-Performance.
-echo "warte auf ruhigen Gast (2 Samples mit CPU-Leerlauf >= 90 %) ..."
+echo "warte auf ruhigen Gast (2 Samples mit CPU-Leerlauf >= 87 %) ..."
 prev=""
 quiet_samples=0
 for i in $(seq 1 60); do
@@ -230,7 +230,7 @@ for i in $(seq 1 60); do
     if [ -n "$prev" ] && [ -n "$cur" ]; then
         pct=$(echo "$prev $cur" | awk '{dt=$3-$1; di=$4-$2; if (dt>0) printf "%d", di*100/dt; else print 0}')
         echo "  Gast-Leerlauf: ${pct} %"
-        if [ "${pct:-0}" -ge 90 ]; then quiet_samples=$((quiet_samples + 1)); else quiet_samples=0; fi
+        if [ "${pct:-0}" -ge 87 ]; then quiet_samples=$((quiet_samples + 1)); else quiet_samples=0; fi
         [ "$quiet_samples" -ge 2 ] && break
     else
         quiet_samples=0
